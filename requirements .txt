@@ -1,4 +1,0 @@
-Flask
-SpeechRecognition
-pyaudio
-google-generativeai
