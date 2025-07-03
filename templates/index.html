@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voice to Gemini AI</title>
+</head>
+<body>
+  <h1>🎤 Ask Gemini with Your Voice</h1>
+  <button onclick="startRecording()">Start Recording</button>
+  <p id="status"></p>
+  <p><strong>Response:</strong> <span id="response"></span></p>
+
+  <script>
+    async function startRecording() {
+      const status = document.getElementById('status');
+      const responseText = document.getElementById('response');
+      status.textContent = 'Recording...';
+      responseText.textContent = '';
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: 'audio/wav' });
+        const formData = new FormData();
+        formData.append('audio', blob, 'speech.wav');
+
+        const res = await fetch('/ask', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.response) {
+          responseText.textContent = data.response;
+        } else {
+          responseText.textContent = data.error || 'Error';
+        }
+
+        status.textContent = '';
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 4000); // Record 4 seconds
+    }
+  </script>
+</body>
+</html>
